@@ -74,19 +74,19 @@ extension UIImage {
             for y in 0..<height {
                 // Construct pixel
                 let pixelData = ((Int(width) * y) + x) * 4
-                let pixel = Pixel(r: Double(imageData[pixelData]) / 255.0, g: CGFloat(imageData[pixelData + 1]) / 255.0, b: CGFloat(imageData[pixelData + 2]) / 255.0, a: CGFloat(imageData[pixelData + 3]) / 255.0)
+                let pixel = Pixel(r: Double(imageData[pixelData]) / 255.0, g: Double(imageData[pixelData + 1]) / 255.0, b: Double(imageData[pixelData + 2]) / 255.0, a: Double(imageData[pixelData + 3]) / 255.0)
                 pixels.append(pixel)
             }
         }
         
         // Process by k-means clustering
-        let analyzer = KMeans(clusterNumber: 3, desiredAccuracy: 0.01, dataPoints: pixels)
+        let analyzer = KMeans(clusterNumber: 3, tolerance: 0.01, dataPoints: pixels)
         let prominentPixels = analyzer.calculateProminentClusters()
         
         // Create palette object
         let primaryColor = UIColor(pixel: prominentPixels[0])
-        let secondaryColor = UIColor(pixel: prominentPixels[0])
-        let tertiaryColor = UIColor(pixel: prominentPixels[0])
+        let secondaryColor = UIColor(pixel: prominentPixels[1])
+        let tertiaryColor = UIColor(pixel: prominentPixels[2])
         
         return UIImageColorPalette(primary: primaryColor, secondary: secondaryColor, tertiary: tertiaryColor)
     }
@@ -96,10 +96,10 @@ extension UIImage {
 // MARK: Private Helpers
 
 fileprivate struct Pixel {
-    let r: Double
-    let g: Double
-    let b: Double
-    let a: Double
+    private(set) var r: Double
+    private(set) var g: Double
+    private(set) var b: Double
+    private(set) var a: Double
 
     init(r: Double, g: Double, b: Double, a: Double) {
         self.r = r
@@ -127,19 +127,64 @@ extension UIColor {
 
 // MARK: K-Means Clustering Helper
 
-private class KMeans {
-    let clusterNumber: Double
-    let desiredAccuracy: Double
+extension Pixel: Comparable {
+    private var count = 0
+    
+    func append(_ pixel: Pixel) {
+        // Add data
+        r += pixel.r
+        g += pixel.g
+        b += pixel.b
+        a += pixel.a
+    }
+    
+    func averageOut(count: Int) {
+        // Add to count and average
+        self.count = count
+        r /= count
+        g /= count
+        b /= count
+        a /= count
+    }
+    
+    // MARK: Comparable
+
+    static func < (lhs: Self, rhs: Self) -> Bool {
+        return lhs.count < rhs.count
+    }
+    
+    static func <= (lhs: Self, rhs: Self) -> Bool {
+        return lhs.count <= rhs.count
+    }
+    
+    static func > (lhs: Self, rhs: Self) -> Bool {
+        return lhs.count > rhs.count
+    }
+    
+    static func >= (lhs: Self, rhs: Self) -> Bool {
+        return lhs.count >= rhs.count
+    }
+    
+    // MARK: Equatable
+    
+    static func == (lhs: Self, rhs: Self) -> Bool  {
+        return lhs.count == rhs.count
+    }
+}
+
+fileprivate class KMeans {
+    let clusterNumber: Int
+    let tolerance: Double
     let dataPoints: [Pixel]
     
-    init(clusterNumber: Double, desiredAccuracy: Double, dataPoints: [Pixel]) {
+    init(clusterNumber: Int, tolerance: Double, dataPoints: [Pixel]) {
         self.clusterNumber = clusterNumber
-        self.desiredAccuracy = desiredAccuracy
+        self.tolerance = tolerance
         self.dataPoints = dataPoints
     }
     
-    private func getRandomSamples<T>(_ samples: [T], k: Int) -> [T] {
-        var result = [T]()
+    private func getRandomSamples(_ samples: [Pixel], k: Int) -> [Pixel] {
+        var result = [Pixel]()
         
         // Fill array with a random entry in samples
         for _ in 0..<k {
@@ -150,19 +195,65 @@ private class KMeans {
         return result
     }
     
-    private func kMeans(centers: Int, convergeDistance: Double, entries: [Pixel]) -> [Pixel] {
+    private func indexOfNearestCentroid(_ pixel: Pixel, centroids: [Pixel]) -> Int {
+        var smallestDistance = Double.greatestFiniteMagnitude
+        var index = 0
+
+        for (i, centroid) in centroids.enumerated() {
+            let distance = pixel.distanceTo(centroid)
+            if distance >= smallestDistance {
+                // Not the smallest
+                continue
+            }
+            
+            smallestDistance = distance
+            index = i
+        }
+
+        return index
+    }
+    
+    func kMeans(partitions: Int, tolerance: Double, entries: [Pixel]) -> [Pixel] {
         // The main engine behind the scenes
-        var randomSamples = getRandomSamples(entries, k: centers)
+        var centroids = getRandomSamples(entries, k: partitions)
         
         var centerMoveDist = 0.0
         repeat {
+            // Create new centers every loop
+            let centerCandidates = [Pixel](repeating: Pixel(r: 0, g: 0, b: 0, a: 0), count: partitions)
+            var totals = [Int](repeating: 0, count: partitions)
             
-        } while centerMoveDist > convergeDistance
+            // Calculate nearest points to centers
+            for pixel in entries {
+                // Update data points
+                let index = indexOfNearestCentroid(pixel, centroids: centroids)
+                centerCandidates[index].append(pixel)
+                totals[index] += 1
+            }
+            
+            // Average out data
+            for i in 0..<partitions {
+                centerCandidates[i].averageOut(count: totals[i])
+            }
+            
+            // Calculate how much each centroid moved
+            centerMoveDist = 0.0
+            for i in 0..<partitions {
+                centerMoveDist += centroids[i].distanceTo(centerCandidates[i])
+            }
+            
+            // Set new centroids
+            centroids = centerCandidates
+        } while centerMoveDist > tolerance
         
-        return randomSamples
+        return centroids
     }
     
     func calculateProminentClusters() -> [Pixel] {
-        return kMeans(centers: clusterNumber, convergeDistance: desiredAccuracy, entries: dataPoints)
+        // Get pixels
+        let pixels = kMeans(partitions: clusterNumber, tolerance: tolerance, entries: dataPoints)
+        
+        // Sort by count
+        return pixels.sorted(by: >)
     }
 }
