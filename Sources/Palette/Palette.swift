@@ -6,6 +6,8 @@
 
 import UIKit
 
+// MARK: Public API
+
 public struct UIImageColorPalette {
     let primary: UIColor
     let secondary: UIColor
@@ -19,10 +21,10 @@ public struct UIImageColorPalette {
 }
 
 public enum UIImageResizeQuality: CGFloat {
-    public case: low = 0.3
-    public case: medium = 0.5
-    public case: high = 0.8
-    public case: standard = 0.0
+    case low = 0.3
+    case medium = 0.5
+    case high = 0.8
+    case standard = 1.0
 }
 
 extension UIImage {
@@ -50,8 +52,7 @@ extension UIImage {
         // Resize if needed
         var imageToProcess = self
         if quality != .standard {
-            let currentSize = self.size
-            let newSize = CGSize(width: currentSize.width * quality.rawValue, height: currentSize.height * quality.rawValue)
+            let newSize = CGSize(width: self.size.width * quality.rawValue, height: self.size.height * quality.rawValue)
             imageToProcess = resizeImage(desiredSize: newSize)
         }
         
@@ -92,6 +93,8 @@ extension UIImage {
 }
 
 
+// MARK: Private Helpers
+
 fileprivate struct Pixel {
     let r: Double
     let g: Double
@@ -122,7 +125,8 @@ extension UIColor {
     }
 }
 
-// Hide the kmeans stuff in a class
+// MARK: K-Means Clustering Helper
+
 private class KMeans {
     let clusterNumber: Double
     let desiredAccuracy: Double
