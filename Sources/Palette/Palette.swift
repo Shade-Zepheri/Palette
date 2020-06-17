@@ -122,8 +122,8 @@ fileprivate struct Pixel {
 }
 
 extension UIColor {
-    fileprivate init(pixel: Pixel) {
-        return UIColor(red: pixel.r, green: pixel.g, blue: pixel.b, alpha: pixel.a)
+    fileprivate convenience init(pixel: Pixel) {
+        self.init(red: CGFloat(pixel.r), green: CGFloat(pixel.g), blue: CGFloat(pixel.b), alpha: CGFloat(pixel.a))
     }
 }
 
