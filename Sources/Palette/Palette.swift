@@ -100,6 +100,8 @@ fileprivate struct Pixel {
     private(set) var g: Double
     private(set) var b: Double
     private(set) var a: Double
+    
+    private(set) var count = 0
 
     init(r: Double, g: Double, b: Double, a: Double) {
         self.r = r
@@ -128,9 +130,9 @@ extension UIColor {
 // MARK: K-Means Clustering Helper
 
 extension Pixel: Comparable {
-    private var count = 0
-    
-    func append(_ pixel: Pixel) {
+    // MARK: K-Means stuff
+
+    mutating func append(_ pixel: Pixel) {
         // Add data
         r += pixel.r
         g += pixel.g
@@ -138,13 +140,13 @@ extension Pixel: Comparable {
         a += pixel.a
     }
     
-    func averageOut(count: Int) {
+    mutating func averageOut(count: Int) {
         // Add to count and average
         self.count = count
-        r /= count
-        g /= count
-        b /= count
-        a /= count
+        r /= Double(count)
+        g /= Double(count)
+        b /= Double(count)
+        a /= Double(count)
     }
     
     // MARK: Comparable
