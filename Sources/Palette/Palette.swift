@@ -39,7 +39,7 @@ extension UIImage {
     public func retrieveColorPalette(quality: UIImageResizeQuality = .standard, _ completion: @escaping (UIImageColorPalette?) -> Void) {
         // Run in background
         DispatchQueue.global(qos: .utility).async {
-            let palette = retrieveColorPalette(quality: quality)
+            let palette = self.retrieveColorPalette(quality: quality)
             
             // Back to main
             DispatchQueue.main.async {
@@ -222,7 +222,7 @@ fileprivate class KMeans {
         var centerMoveDist = 0.0
         repeat {
             // Create new centers every loop
-            let centerCandidates = [Pixel](repeating: Pixel(r: 0, g: 0, b: 0, a: 0), count: partitions)
+            var centerCandidates = [Pixel](repeating: Pixel(r: 0, g: 0, b: 0, a: 0), count: partitions)
             var totals = [Int](repeating: 0, count: partitions)
             
             // Calculate nearest points to centers
