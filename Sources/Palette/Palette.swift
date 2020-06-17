@@ -69,7 +69,7 @@ extension UIImage {
         let width = cgImage.width
         let height = cgImage.height
         
-        var pixels:[Pixel] = [Pixel](repeating: 0, count: width * height)
+        var pixels:[Pixel] = [Pixel]()
         for x in 0..<width {
             for y in 0..<height {
                 // Construct pixel
