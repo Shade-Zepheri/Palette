@@ -1,8 +1,8 @@
 //
-//  File.swift
+//  Palette.swift
 //
 //  Created by Alfonso Gonzalez on 4/9/20.
-//
+//  Copyright (c) 2020 Alfonso Gonzalez
 
 import UIKit
 
