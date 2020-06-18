@@ -29,8 +29,12 @@ public enum UIImageResizeQuality: CGFloat {
 
 extension UIImage {
     private func resizeImage(desiredSize: CGSize) -> UIImage {
+        // Make sure scale remains the same
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = self.scale
+
         // UIGraphicsImageRenderer makes life easy
-        let renderer = UIGraphicsImageRenderer(size: desiredSize)
+        let renderer = UIGraphicsImageRenderer(size: desiredSize, format: format)
         return renderer.image { (context) in
             self.draw(in: CGRect(origin: .zero, size: desiredSize))
         }
