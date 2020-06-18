@@ -8,7 +8,7 @@ import UIKit
 
 // MARK: Public API
 
-public struct UIImageColorPalette {
+public struct UIImageColorPalette: CustomStringConvertible {
     let primary: UIColor
     let secondary: UIColor
     let tertiary: UIColor
@@ -17,6 +17,10 @@ public struct UIImageColorPalette {
         self.primary = primary
         self.secondary = secondary
         self.tertiary = tertiary
+    }
+    
+    public var description: String {
+        return "primary \(primary) secondary \(secondary) tertiary \(tertiary)"
     }
 }
 
