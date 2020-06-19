@@ -29,11 +29,11 @@ public struct UIImageColorPalette: CustomStringConvertible {
         var description = "Primary: \(primary)"
         
         if let secondary = secondary {
-            description.append(", Secondary: \(secondary)")
+            description += ", Secondary: \(secondary)"
         }
         
         if let tertiary = tertiary {
-            description.append(", Tertiary: \(tertiary)")
+            description += ", Tertiary: \(tertiary)"
         }
         
         return description
