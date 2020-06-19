@@ -126,13 +126,18 @@ extension UIImage {
         let width = cgImage.width
         let height = cgImage.height
         
-        var pixels:[Pixel] = [Pixel]()
+        var pixels = [Double]()
+        pixels.reserveCapacity(width * height)
         for x in 0..<width {
             for y in 0..<height {
                 // Construct pixel
-                let pixelData = ((Int(width) * y) + x) * 4
-                let pixel = Pixel(r: Double(imageData[pixelData]) / 255.0, g: Double(imageData[pixelData + 1]) / 255.0, b: Double(imageData[pixelData + 2]) / 255.0, a: Double(imageData[pixelData + 3]) / 255.0)
-                pixels.append(pixel)
+                let pixelIndex = ((width * y) + x) * 4
+                let r = Double(imageData[pixelIndex]) * 1000000000.0
+                let g = Double(imageData[pixelIndex + 1]) * 1000000
+                let b = Double(imageData[pixelIndex + 2]) * 1000
+                let a = Double(imageData[pixelIndex + 3])
+                let doubleRepresentation = r + g + b + a
+                pixels.append(doubleRepresentation)
             }
         }
         
@@ -154,21 +159,63 @@ extension UIImage {
 
 // MARK: Private Helpers
 
-fileprivate struct Pixel {
-    private(set) var r: Double
-    private(set) var g: Double
-    private(set) var b: Double
-    private(set) var a: Double
-    
-    private(set) var count = 0
+extension UIColor {
+    fileprivate convenience init?(pixel: Pixel) {
+        guard !pixel.r.isNaN else {
+            return nil
+        }
+        
+        self.init(red: CGFloat(pixel.r / 255), green: CGFloat(pixel.g / 255), blue: CGFloat(pixel.b / 255), alpha: CGFloat(pixel.a / 255))
+    }
+}
 
-    init(r: Double, g: Double, b: Double, a: Double) {
-        self.r = r
-        self.g = g
-        self.b = b
-        self.a = a
+// MARK: K-Means Clustering Helper
+
+// Utilizing a double because normal structs take too long to allocate
+fileprivate extension Double {
+    // MARK: RGBA
+    var r: Double {
+        return floor(self / 1000000000)
     }
     
+    var g: Double {
+        return floor(fmod(self, 1000000000) / 1000000)
+    }
+    
+    var b: Double {
+        return floor(fmod(self, 1000000) / 1000)
+    }
+    
+    var a: Double {
+        return fmod(self, 1000)
+    }
+}
+
+fileprivate struct Pixel: Comparable {
+    var r: Double
+    var g: Double
+    var b: Double
+    var a: Double
+    
+    var count = 0
+
+    init(double: Double) {
+        self.r = double.r
+        self.g = double.g
+        self.b = double.b
+        self.a = double.a
+    }
+    
+    func distanceTo(_ other: Double) -> Double {
+        // Simple distance formula
+        let rDistance = pow(r - other.r, 2)
+        let gDistance = pow(g - other.g, 2)
+        let bDistance = pow(b - other.b, 2)
+        let aDistance = pow(a - other.a, 2)
+        
+        return sqrt(rDistance + gDistance + bDistance + aDistance)
+    }
+
     func distanceTo(_ other: Pixel) -> Double {
         // Simple distance formula
         let rDistance = pow(r - other.r, 2)
@@ -178,24 +225,8 @@ fileprivate struct Pixel {
         
         return sqrt(rDistance + gDistance + bDistance + aDistance)
     }
-}
-
-extension UIColor {
-    fileprivate convenience init?(pixel: Pixel) {
-        guard !pixel.r.isNaN else {
-            return nil
-        }
-        
-        self.init(red: CGFloat(pixel.r), green: CGFloat(pixel.g), blue: CGFloat(pixel.b), alpha: CGFloat(pixel.a))
-    }
-}
-
-// MARK: K-Means Clustering Helper
-
-extension Pixel: Comparable {
-    // MARK: K-Means stuff
-
-    mutating func append(_ pixel: Pixel) {
+    
+    mutating func append(_ pixel: Double) {
         // Add data
         r += pixel.r
         g += pixel.g
@@ -240,32 +271,37 @@ extension Pixel: Comparable {
 fileprivate class KMeans {
     let clusterNumber: Int
     let tolerance: Double
-    let dataPoints: [Pixel]
+    let dataPoints: [Double]
     
-    init(clusterNumber: Int, tolerance: Double, dataPoints: [Pixel]) {
+    init(clusterNumber: Int, tolerance: Double, dataPoints: [Double]) {
         self.clusterNumber = clusterNumber
         self.tolerance = tolerance
         self.dataPoints = dataPoints
     }
     
-    private func getRandomSamples(_ samples: [Pixel], k: Int) -> [Pixel] {
+    private func getRandomSamples(_ samples: [Double], k: Int) -> [Pixel] {
         var result = [Pixel]()
         
         // Fill array with a random entry in samples
-        for _ in 0..<k {
-            let random = Int.random(in: 0..<samples.count)
-            result.append(samples[random])
+        for i in 0..<k {
+            let startIndex = (samples.count / 4) * i
+            let endIndex = (samples.count / 4) * (i + 1)
+            let random = Int.random(in: startIndex..<endIndex)
+            
+            // Create Pixel wrapper
+            let pixel = Pixel(double: samples[random])
+            result.append(pixel)
         }
 
         return result
     }
     
-    private func indexOfNearestCentroid(_ pixel: Pixel, centroids: [Pixel]) -> Int {
+    private func indexOfNearestCentroid(_ pixel: Double, centroids: [Pixel]) -> Int {
         var smallestDistance = Double.greatestFiniteMagnitude
         var index = 0
 
         for (i, centroid) in centroids.enumerated() {
-            let distance = pixel.distanceTo(centroid)
+            let distance = centroid.distanceTo(pixel)
             if distance >= smallestDistance {
                 // Not the smallest
                 continue
@@ -278,14 +314,14 @@ fileprivate class KMeans {
         return index
     }
     
-    func kMeans(partitions: Int, tolerance: Double, entries: [Pixel]) -> [Pixel] {
+    func kMeans(partitions: Int, tolerance: Double, entries: [Double]) -> [Pixel] {
         // The main engine behind the scenes
         var centroids = getRandomSamples(entries, k: partitions)
         
         var centerMoveDist = 0.0
         repeat {
             // Create new centers every loop
-            var centerCandidates = [Pixel](repeating: Pixel(r: 0, g: 0, b: 0, a: 0), count: partitions)
+            var centerCandidates = [Pixel](repeating: Pixel(double: 0), count: partitions)
             var totals = [Int](repeating: 0, count: partitions)
             
             // Calculate nearest points to centers
