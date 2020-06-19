@@ -191,7 +191,7 @@ fileprivate extension UIColor {
 
 // MARK: K-Means Clustering Helper
 
-fileprivate struct Pixel: Comparable {
+fileprivate struct Pixel {
     var r: Double
     var g: Double
     var b: Double
