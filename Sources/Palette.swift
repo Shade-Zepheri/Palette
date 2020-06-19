@@ -73,7 +73,7 @@ extension UIImage {
             
             // Make sure scale remains the same
             let format = UIGraphicsImageRendererFormat()
-            format.scale = self.scale
+            format.scale = scale
 
             // UIGraphicsImageRenderer makes life easy
             let renderer = UIGraphicsImageRenderer(size: desiredSize, format: format)
