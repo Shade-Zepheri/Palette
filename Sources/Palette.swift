@@ -10,17 +10,27 @@ import UIKit
 
 public struct UIImageColorPalette: CustomStringConvertible {
     let primary: UIColor
-    let secondary: UIColor
-    let tertiary: UIColor
+    let secondary: UIColor?
+    let tertiary: UIColor?
     
-    public init(primary: UIColor, secondary: UIColor, tertiary: UIColor) {
+    public init(primary: UIColor, secondary: UIColor?, tertiary: UIColor?) {
         self.primary = primary
         self.secondary = secondary
         self.tertiary = tertiary
     }
     
     public var description: String {
-        return "primary \(primary) secondary \(secondary) tertiary \(tertiary)"
+        var description = "Primary: \(primary)"
+        
+        if let secondary = secondary {
+            description.append(", Secondary: \(secondary)")
+        }
+        
+        if let tertiary = tertiary {
+            description.append(", Tertiary: \(tertiary)")
+        }
+        
+        return description
     }
 }
 
@@ -92,10 +102,12 @@ extension UIImage {
         let prominentPixels = analyzer.calculateProminentClusters()
         
         // Create palette object
-        let primaryColor = UIColor(pixel: prominentPixels[0])
+        guard let primaryColor = UIColor(pixel: prominentPixels[0]) else {
+            return nil
+        }
+
         let secondaryColor = UIColor(pixel: prominentPixels[1])
         let tertiaryColor = UIColor(pixel: prominentPixels[2])
-        
         return UIImageColorPalette(primary: primaryColor, secondary: secondaryColor, tertiary: tertiaryColor)
     }
 }
@@ -130,7 +142,11 @@ fileprivate struct Pixel {
 }
 
 extension UIColor {
-    fileprivate convenience init(pixel: Pixel) {
+    fileprivate convenience init?(pixel: Pixel) {
+        guard pixel.r != .nan else {
+            return nil
+        }
+        
         self.init(red: CGFloat(pixel.r), green: CGFloat(pixel.g), blue: CGFloat(pixel.b), alpha: CGFloat(pixel.a))
     }
 }
