@@ -4,7 +4,13 @@
 //  Created by Alfonso Gonzalez on 4/9/20.
 //  Copyright (c) 2020 Alfonso Gonzalez
 
-import UIKit
+#if os(macOS)
+    import AppKit
+    public typealias UIImage = NSImage
+    public typealias UIColor = NSColor
+#else
+    import UIKit
+#endif
 
 // MARK: Public API
 
@@ -42,17 +48,40 @@ public enum UIImageResizeQuality: CGFloat {
 }
 
 extension UIImage {
-    private func resizeImage(desiredSize: CGSize) -> UIImage {
-        // Make sure scale remains the same
-        let format = UIGraphicsImageRendererFormat()
-        format.scale = self.scale
-
-        // UIGraphicsImageRenderer makes life easy
-        let renderer = UIGraphicsImageRenderer(size: desiredSize, format: format)
-        return renderer.image { (context) in
-            self.draw(in: CGRect(origin: .zero, size: desiredSize))
+    #if os(macOS)
+        private func resizeImage(desiredSize: CGSize) -> UIImage? {
+            if desiredSize == size {
+                return self
+            }
+            
+            let frame = CGRect(origin: .zero, size: desiredSize)
+            guard let representation = bestRepresentation(for: frame, context: nil, hints: nil) else {
+                return nil
+            }
+            
+            let result = NSImage(size: desiredSize, flipped: false) { (_) -> Bool in
+                return representation.draw(in: frame)
+            }
+            
+            return result
         }
-    }
+    #else
+        private func resizeImage(desiredSize: CGSize) -> UIImage? {
+            if desiredSize == size {
+                return self
+            }
+            
+            // Make sure scale remains the same
+            let format = UIGraphicsImageRendererFormat()
+            format.scale = self.scale
+
+            // UIGraphicsImageRenderer makes life easy
+            let renderer = UIGraphicsImageRenderer(size: desiredSize, format: format)
+            return renderer.image { (context) in
+                self.draw(in: CGRect(origin: .zero, size: desiredSize))
+            }
+        }
+    #endif
     
     public func retrieveColorPalette(quality: UIImageResizeQuality = .standard, _ completion: @escaping (UIImageColorPalette?) -> Void) {
         // Run in background
@@ -68,16 +97,26 @@ extension UIImage {
     
     public func retrieveColorPalette(quality: UIImageResizeQuality = .standard) -> UIImageColorPalette? {
         // Resize if needed
-        var imageToProcess = self
+        var desiredSize = size
         if quality != .standard {
-            let newSize = CGSize(width: self.size.width * quality.rawValue, height: self.size.height * quality.rawValue)
-            imageToProcess = resizeImage(desiredSize: newSize)
+            // Determine new size
+            desiredSize = CGSize(width: size.width * quality.rawValue, height: size.height * quality.rawValue)
+        }
+        
+        guard let imageToProcess = resizeImage(desiredSize: desiredSize) else {
+            return nil
         }
         
         // Get image data
-        guard let cgImage = imageToProcess.cgImage else {
-            return nil
-        }
+        #if os(macOS)
+            guard let cgImage = imageToProcess.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+                return nil
+            }
+        #else
+            guard let cgImage = imageToProcess.cgImage else {
+                return nil
+            }
+        #endif
         
         guard let imageData = CFDataGetBytePtr(cgImage.dataProvider!.data) else {
             fatalError("Could not retrieve image data")
