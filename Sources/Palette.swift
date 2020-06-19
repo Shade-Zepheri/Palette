@@ -132,7 +132,7 @@ extension UIImage {
             for y in 0..<height {
                 // Construct pixel
                 let pixelIndex = ((width * y) + x) * 4
-                let r = Double(imageData[pixelIndex]) * 1000000000.0
+                let r = Double(imageData[pixelIndex]) * 1000000000
                 let g = Double(imageData[pixelIndex + 1]) * 1000000
                 let b = Double(imageData[pixelIndex + 2]) * 1000
                 let a = Double(imageData[pixelIndex + 3])
@@ -159,8 +159,8 @@ extension UIImage {
 
 // MARK: Private Helpers
 
-extension UIColor {
-    fileprivate convenience init?(pixel: Pixel) {
+fileprivate extension UIColor {
+    convenience init?(pixel: Pixel) {
         guard !pixel.r.isNaN else {
             return nil
         }
