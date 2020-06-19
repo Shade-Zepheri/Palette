@@ -159,18 +159,6 @@ extension UIImage {
 
 // MARK: Private Helpers
 
-fileprivate extension UIColor {
-    convenience init?(pixel: Pixel) {
-        guard !pixel.r.isNaN else {
-            return nil
-        }
-        
-        self.init(red: CGFloat(pixel.r / 255), green: CGFloat(pixel.g / 255), blue: CGFloat(pixel.b / 255), alpha: CGFloat(pixel.a / 255))
-    }
-}
-
-// MARK: K-Means Clustering Helper
-
 // Utilizing a double because normal structs take too long to allocate
 fileprivate extension Double {
     // MARK: RGBA
@@ -190,6 +178,18 @@ fileprivate extension Double {
         return fmod(self, 1000)
     }
 }
+
+fileprivate extension UIColor {
+    convenience init?(pixel: Pixel) {
+        guard !pixel.r.isNaN else {
+            return nil
+        }
+        
+        self.init(red: CGFloat(pixel.r / 255), green: CGFloat(pixel.g / 255), blue: CGFloat(pixel.b / 255), alpha: CGFloat(pixel.a / 255))
+    }
+}
+
+// MARK: K-Means Clustering Helper
 
 fileprivate struct Pixel: Comparable {
     var r: Double
