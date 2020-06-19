@@ -182,7 +182,7 @@ fileprivate struct Pixel {
 
 extension UIColor {
     fileprivate convenience init?(pixel: Pixel) {
-        guard pixel.r != .nan else {
+        guard !pixel.r.isNaN else {
             return nil
         }
         
