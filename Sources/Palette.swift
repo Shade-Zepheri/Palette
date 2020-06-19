@@ -196,14 +196,20 @@ fileprivate struct Pixel: Comparable {
     var g: Double
     var b: Double
     var a: Double
-    
     var count = 0
 
+    init() {
+        r = 0
+        g = 0
+        b = 0
+        a = 0
+    }
+    
     init(double: Double) {
-        self.r = double.r
-        self.g = double.g
-        self.b = double.b
-        self.a = double.a
+        r = double.r
+        g = double.g
+        b = double.b
+        a = double.a
     }
     
     func distanceTo(_ other: Double) -> Double {
@@ -241,30 +247,6 @@ fileprivate struct Pixel: Comparable {
         g /= Double(count)
         b /= Double(count)
         a /= Double(count)
-    }
-    
-    // MARK: Comparable
-
-    static func < (lhs: Self, rhs: Self) -> Bool {
-        return lhs.count < rhs.count
-    }
-    
-    static func <= (lhs: Self, rhs: Self) -> Bool {
-        return lhs.count <= rhs.count
-    }
-    
-    static func > (lhs: Self, rhs: Self) -> Bool {
-        return lhs.count > rhs.count
-    }
-    
-    static func >= (lhs: Self, rhs: Self) -> Bool {
-        return lhs.count >= rhs.count
-    }
-    
-    // MARK: Equatable
-    
-    static func == (lhs: Self, rhs: Self) -> Bool  {
-        return lhs.count == rhs.count
     }
 }
 
@@ -321,7 +303,7 @@ fileprivate class KMeans {
         var centerMoveDist = 0.0
         repeat {
             // Create new centers every loop
-            var centerCandidates = [Pixel](repeating: Pixel(double: 0), count: partitions)
+            var centerCandidates = [Pixel](repeating: Pixel(), count: partitions)
             var totals = [Int](repeating: 0, count: partitions)
             
             // Calculate nearest points to centers
@@ -355,6 +337,8 @@ fileprivate class KMeans {
         let pixels = kMeans(partitions: clusterNumber, tolerance: tolerance, entries: dataPoints)
         
         // Sort by count
-        return pixels.sorted(by: >)
+        return pixels.sorted {
+            $0.count > $1.count
+        }
     }
 }
