@@ -262,10 +262,8 @@ fileprivate class KMeans {
         var result = [Pixel]()
         
         // Fill array with a random entry in samples
-        for i in 0..<k {
-            let startIndex = (samples.count / 4) * i
-            let endIndex = (samples.count / 4) * (i + 1)
-            let random = Int.random(in: startIndex..<endIndex)
+        for _ in 0..<k {
+            let random = Int(arc4random_uniform(UInt32(samples.count)))
             
             // Create Pixel wrapper
             let pixel = Pixel(double: samples[random])
