@@ -159,8 +159,15 @@ extension UIImage {
 
 // MARK: Private Helpers
 
+fileprivate protocol RGBAPixelRepresentable {
+    var r: Double { get }
+    var g: Double { get }
+    var b: Double { get }
+    var a: Double { get }
+}
+
 // Utilizing a double because normal structs take too long to allocate
-fileprivate extension Double {
+extension Double: RGBAPixelRepresentable {
     // MARK: RGBA
     var r: Double {
         return floor(self / 1000000000)
@@ -191,7 +198,7 @@ fileprivate extension UIColor {
 
 // MARK: K-Means Clustering Helper
 
-fileprivate struct Pixel {
+fileprivate struct Pixel: RGBAPixelRepresentable {
     var r: Double
     var g: Double
     var b: Double
@@ -212,17 +219,7 @@ fileprivate struct Pixel {
         a = double.a
     }
     
-    func distanceTo(_ other: Double) -> Double {
-        // Simple distance formula
-        let rDistance = pow(r - other.r, 2)
-        let gDistance = pow(g - other.g, 2)
-        let bDistance = pow(b - other.b, 2)
-        let aDistance = pow(a - other.a, 2)
-        
-        return sqrt(rDistance + gDistance + bDistance + aDistance)
-    }
-
-    func distanceTo(_ other: Pixel) -> Double {
+    func distanceTo(_ other: RGBAPixelRepresentable) -> Double {
         // Simple distance formula
         let rDistance = pow(r - other.r, 2)
         let gDistance = pow(g - other.g, 2)
