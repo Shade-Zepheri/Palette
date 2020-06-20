@@ -169,19 +169,19 @@ fileprivate protocol RGBAPixelRepresentable {
 // Utilizing a double because normal structs take too long to allocate
 extension Double: RGBAPixelRepresentable {
     // MARK: RGBA
-    var r: Double {
+    fileprivate var r: Double {
         return floor(self / 1000000000)
     }
     
-    var g: Double {
+    fileprivate var g: Double {
         return floor(fmod(self, 1000000000) / 1000000)
     }
     
-    var b: Double {
+    fileprivate var b: Double {
         return floor(fmod(self, 1000000) / 1000)
     }
     
-    var a: Double {
+    fileprivate var a: Double {
         return fmod(self, 1000)
     }
 }
