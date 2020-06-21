@@ -131,7 +131,7 @@ extension UIImage {
             for y in 0..<height {
                 // Construct pixel
                 let pixelIndex = ((width * y) + x) * 4
-                let pixel = Pixel(r: Double(imageData[pixelIndex]) / 255.0, g: Double(imageData[pixelIndex + 1]) / 255.0, b: Double(imageData[pixelIndex + 2]) / 255.0, a: Double(imageData[pixelIndex + 3]) / 255.0)
+                let pixel = Pixel(r: Double(imageData[pixelIndex]), g: Double(imageData[pixelIndex + 1]), b: Double(imageData[pixelIndex + 2]), a: Double(imageData[pixelIndex + 3]))
                 pixels.append(pixel)
             }
         }
@@ -202,7 +202,7 @@ fileprivate extension UIColor {
             return nil
         }
         
-        self.init(red: CGFloat(pixel.r), green: CGFloat(pixel.g), blue: CGFloat(pixel.b), alpha: CGFloat(pixel.a))
+        self.init(red: CGFloat(pixel.r / 255), green: CGFloat(pixel.g / 255), blue: CGFloat(pixel.b / 255), alpha: CGFloat(pixel.a / 255))
     }
 }
 
