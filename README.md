@@ -1,3 +1,49 @@
 # Palette
 
-Retrieves the palette of colors present in an image. Only available on iOS for the time being while I refine it.
+[![Latest Release](https://img.shields.io/github/v/release/Shade-Zepheri/Palette?sort=semver)](https://github.com/Shade-Zepheri/Palette/releases/latest)
+[![License](https://img.shields.io/github/license/Shade-Zepheri/Palette?color=black)](LICENSE)
+[![SwiftPM Compatible](https://img.shields.io/badge/SwiftPM-compatible-orange)](https://swift.org/package-manager/)
+[![Twitter](https://img.shields.io/badge/twitter-%40alfonso__gonzo-9cf)](https://twitter.com/alfonso_gonzo)
+
+Retrieve the primary, secondary, and tertiary colors that are present in an image.
+
+## Requirements
+
+- iOS 10.0+ | tvOS 10.0+ | macOS 10.12+ (10.15 for Catalyst)
+- Xcode 11.0+ (For Swift Package Manager)
+
+## Integration
+
+### Swift Package Manager (Xcode 11+)
+
+Palette utilizes [Swift Package Manager](https://swift.org/package-manager/) as the main means for distribution.
+
+To add Palette to your project, select `File` -> `Swift Packages` -> `Add Package Dependency` and enter [Palette's repo's URL](https://github.com/Shade-Zepheri/Palette.git). Alternatively, you can add your GitHub account to Xcode and search for 'Palette.
+
+### Manually
+
+To manually install, simply copy [Palette.swift](Sources/Palette/Palette.swift) into your project.
+
+## How To Use
+
+A simplified overview:
+```swift
+let image = UIImage(named: "thing1.png")
+
+image.retrieveColorPalette { palette in
+    backgroundView.backgroundColor = palette.primary
+    mainLabel.textColor = palette.secondary
+    secondaryLabel.textColor = palette.tertiary
+}
+```
+
+Palette also provides a synchronous method call
+```swift
+public func retrieveColorPalette(quality: UIImageResizeQuality = .standard) -> UIImageColorPalette?
+```
+
+Both the async and sync methods can take an optional `UIImageResizeQuality` parameter that resizes the image in order to improve performance.
+
+## License
+
+Palette is licensed under the [MIT License](LICENSE).
