@@ -126,18 +126,13 @@ extension UIImage {
         let width = cgImage.width
         let height = cgImage.height
         
-        var pixels = [Double]()
-        pixels.reserveCapacity(width * height)
+        var pixels = [Pixel]()
         for x in 0..<width {
             for y in 0..<height {
                 // Construct pixel
                 let pixelIndex = ((width * y) + x) * 4
-                let r = Double(imageData[pixelIndex]) * 1000000000
-                let g = Double(imageData[pixelIndex + 1]) * 1000000
-                let b = Double(imageData[pixelIndex + 2]) * 1000
-                let a = Double(imageData[pixelIndex + 3])
-                let doubleRepresentation = r + g + b + a
-                pixels.append(doubleRepresentation)
+                let pixel = Pixel(r: Double(imageData[pixelIndex]) / 255.0, g: Double(imageData[pixelIndex + 1]) / 255.0, b: Double(imageData[pixelIndex + 2]) / 255.0, a: Double(imageData[pixelIndex + 3]) / 255.0)
+                pixels.append(pixel)
             }
         }
         
@@ -159,67 +154,21 @@ extension UIImage {
 
 // MARK: Private Helpers
 
-fileprivate protocol RGBAPixelRepresentable {
-    var r: Double { get }
-    var g: Double { get }
-    var b: Double { get }
-    var a: Double { get }
-}
-
-// Utilizing a double because normal structs take too long to allocate
-extension Double: RGBAPixelRepresentable {
-    // MARK: RGBA
-    fileprivate var r: Double {
-        return floor(self / 1000000000)
-    }
-    
-    fileprivate var g: Double {
-        return floor(fmod(self, 1000000000) / 1000000)
-    }
-    
-    fileprivate var b: Double {
-        return floor(fmod(self, 1000000) / 1000)
-    }
-    
-    fileprivate var a: Double {
-        return fmod(self, 1000)
-    }
-}
-
-fileprivate extension UIColor {
-    convenience init?(pixel: Pixel) {
-        guard !pixel.r.isNaN else {
-            return nil
-        }
-        
-        self.init(red: CGFloat(pixel.r / 255), green: CGFloat(pixel.g / 255), blue: CGFloat(pixel.b / 255), alpha: CGFloat(pixel.a / 255))
-    }
-}
-
-// MARK: K-Means Clustering Helper
-
-fileprivate struct Pixel: RGBAPixelRepresentable {
+fileprivate struct Pixel {
     var r: Double
     var g: Double
     var b: Double
     var a: Double
     var count = 0
 
-    init() {
-        r = 0
-        g = 0
-        b = 0
-        a = 0
+    init(r: Double, g: Double, b: Double, a: Double) {
+        self.r = r
+        self.g = g
+        self.b = b
+        self.a = a
     }
     
-    init(double: Double) {
-        r = double.r
-        g = double.g
-        b = double.b
-        a = double.a
-    }
-    
-    func distanceTo(_ other: RGBAPixelRepresentable) -> Double {
+    func distanceTo(_ other: Pixel) -> Double {
         // Simple distance formula
         let rDistance = pow(r - other.r, 2)
         let gDistance = pow(g - other.g, 2)
@@ -229,7 +178,7 @@ fileprivate struct Pixel: RGBAPixelRepresentable {
         return sqrt(rDistance + gDistance + bDistance + aDistance)
     }
     
-    mutating func append(_ pixel: Double) {
+    mutating func append(_ pixel: Pixel) {
         // Add data
         r += pixel.r
         g += pixel.g
@@ -247,38 +196,45 @@ fileprivate struct Pixel: RGBAPixelRepresentable {
     }
 }
 
+fileprivate extension UIColor {
+    convenience init?(pixel: Pixel) {
+        guard !pixel.r.isNaN else {
+            return nil
+        }
+        
+        self.init(red: CGFloat(pixel.r), green: CGFloat(pixel.g), blue: CGFloat(pixel.b), alpha: CGFloat(pixel.a))
+    }
+}
+
 fileprivate class KMeans {
     let clusterNumber: Int
     let tolerance: Double
-    let dataPoints: [Double]
+    let dataPoints: [Pixel]
     
-    init(clusterNumber: Int, tolerance: Double, dataPoints: [Double]) {
+    init(clusterNumber: Int, tolerance: Double, dataPoints: [Pixel]) {
         self.clusterNumber = clusterNumber
         self.tolerance = tolerance
         self.dataPoints = dataPoints
     }
     
-    private func getRandomSamples(_ samples: [Double], k: Int) -> [Pixel] {
+    private func getRandomSamples(_ samples: [Pixel], k: Int) -> [Pixel] {
         var result = [Pixel]()
         
         // Fill array with a random entry in samples
         for _ in 0..<k {
-            let random = Int(arc4random_uniform(UInt32(samples.count)))
-            
-            // Create Pixel wrapper
-            let pixel = Pixel(double: samples[random])
-            result.append(pixel)
+            let random = Int.random(in: 0..<samples.count)
+            result.append(samples[random])
         }
 
         return result
     }
     
-    private func indexOfNearestCentroid(_ pixel: Double, centroids: [Pixel]) -> Int {
+    private func indexOfNearestCentroid(_ pixel: Pixel, centroids: [Pixel]) -> Int {
         var smallestDistance = Double.greatestFiniteMagnitude
         var index = 0
 
         for (i, centroid) in centroids.enumerated() {
-            let distance = centroid.distanceTo(pixel)
+            let distance = pixel.distanceTo(centroid)
             if distance >= smallestDistance {
                 // Not the smallest
                 continue
@@ -291,14 +247,14 @@ fileprivate class KMeans {
         return index
     }
     
-    func kMeans(partitions: Int, tolerance: Double, entries: [Double]) -> [Pixel] {
+    func kMeans(partitions: Int, tolerance: Double, entries: [Pixel]) -> [Pixel] {
         // The main engine behind the scenes
         var centroids = getRandomSamples(entries, k: partitions)
         
         var centerMoveDist = 0.0
         repeat {
             // Create new centers every loop
-            var centerCandidates = [Pixel](repeating: Pixel(), count: partitions)
+            var centerCandidates = [Pixel](repeating: Pixel(r: 0, g: 0, b: 0, a: 0), count: partitions)
             var totals = [Int](repeating: 0, count: partitions)
             
             // Calculate nearest points to centers
