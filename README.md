@@ -1,6 +1,10 @@
-# Palette
+<p align="center" >
+  <img src="Palette.png" title="Palette Logo" float=left>
+</p>
 
+[![Build Status](https://travis-ci.com/Shade-Zepheri/Palette.svg?branch=master)](https://travis-ci.com/Shade-Zepheri/Palette)
 [![Latest Release](https://img.shields.io/github/v/release/Shade-Zepheri/Palette?sort=semver)](https://github.com/Shade-Zepheri/Palette/releases/latest)
+![Supported Platforms](https://img.shields.io/badge/platform-iOS%20%7C%20macOS%20%7C%20tvOS-red)
 [![License](https://img.shields.io/github/license/Shade-Zepheri/Palette?color=black)](LICENSE)
 [![SwiftPM Compatible](https://img.shields.io/badge/SwiftPM-compatible-orange)](https://swift.org/package-manager/)
 [![Twitter](https://img.shields.io/badge/twitter-%40alfonso__gonzo-9cf)](https://twitter.com/alfonso_gonzo)
