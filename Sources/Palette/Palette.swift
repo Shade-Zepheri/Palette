@@ -14,9 +14,18 @@
 
 // MARK: Public API
 
+/// A structure that describes a `UIImage`'s color palette.
+///
+/// This structure provides the three most prominent colors in a `UIImage`. Since images can contain less than
+/// three colors, you must be able to adapt to such images.
 public struct UIImageColorPalette: CustomStringConvertible {
+    /// The color most prevalent in the image
     let primary: UIColor
+    
+    /// The second most prevalent color in the image
     let secondary: UIColor?
+    
+    /// The third most prevalent color in the image
     let tertiary: UIColor?
     
     public init(primary: UIColor, secondary: UIColor?, tertiary: UIColor?) {
@@ -40,10 +49,21 @@ public struct UIImageColorPalette: CustomStringConvertible {
     }
 }
 
+/// The quality associated with resizing an image
+///
+/// When processing large images, you may want to resize the image in order to speed up the processing.
+/// The smaller you resize an image however, you give up more quality and color accuracy potentially.
 public enum UIImageResizeQuality: CGFloat {
+    /// Quality associated with resizing the image to **0.3x** its size
     case low = 0.3
+    
+    /// Quality associated with resizing the image to **0.5x** its original size
     case medium = 0.5
+    
+    /// Quality associated with resizing the image to **0.8x** its original size
     case high = 0.8
+    
+    /// Quality associated with the original image size
     case standard = 1.0
 }
 
@@ -83,7 +103,16 @@ extension UIImage {
         }
     #endif
     
-    public func retrieveColorPalette(quality: UIImageResizeQuality = .standard, _ completion: @escaping (UIImageColorPalette?) -> Void) {
+    /// Queues the creation of the `UIImageColorPalette` object onto a background queue.
+    ///
+    /// - Parameters:
+    ///   - quality: Quality to resize image. The default value is `.standard`.
+    ///   - completion: Completion to call with the resulting `UIImageColorPalette` object.
+    ///   - palette: The calculated `UIImageColorPalette` object.
+    ///
+    /// When processing large images, you may want dispatch the task to a background thread in order to distribute out the load.
+    /// This method dispatches the processing onto a seperate queue, and returns the calculated `UIImageColorPalette` in the completion.
+    public func retrieveColorPalette(quality: UIImageResizeQuality = .standard, completion: @escaping (_ palette: UIImageColorPalette?) -> Void) {
         // Run in background
         DispatchQueue.global(qos: .utility).async {
             let palette = self.retrieveColorPalette(quality: quality)
@@ -95,6 +124,11 @@ extension UIImage {
         }
     }
     
+    /// Returns the color palette of an image in the form of a `UIImageColorPalette` object
+    ///
+    /// - Parameter quality: Quality to resize image. The default value is `.standard`.
+    ///
+    /// - Returns: A `UIImageColorPalette` object of the color palette.
     public func retrieveColorPalette(quality: UIImageResizeQuality = .standard) -> UIImageColorPalette? {
         // Resize if needed
         var desiredSize = size
