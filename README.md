@@ -9,11 +9,11 @@
 [![SwiftPM Compatible](https://img.shields.io/badge/SwiftPM-compatible-orange)](https://swift.org/package-manager/)
 [![Twitter](https://img.shields.io/badge/twitter-%40alfonso__gonzo-9cf)](https://twitter.com/alfonso_gonzo)
 
-Retrieve the primary, secondary, and tertiary colors that are present in an image.
+Fetch the three most prominent colors in an image.
 
 ## Requirements
 
-- iOS 10.0+ | tvOS 10.0+ | macOS 10.12+ (10.15 for Catalyst)
+- iOS 10.0+ | macOS 10.12+ (10.15 for Catalyst) | tvOS 10.0+
 - Xcode 11.0+ (For Swift Package Manager)
 
 ## Integration
@@ -22,7 +22,7 @@ Retrieve the primary, secondary, and tertiary colors that are present in an imag
 
 Palette utilizes [Swift Package Manager](https://swift.org/package-manager/) as the main means for distribution.
 
-To add Palette to your project, select `File` -> `Swift Packages` -> `Add Package Dependency` and enter [Palette's repo's URL](https://github.com/Shade-Zepheri/Palette.git). Alternatively, you can add your GitHub account to Xcode and search for 'Palette.
+To add Palette to your project, select `File` -> `Swift Packages` -> `Add Package Dependency` and enter [Palette's repo's URL](https://github.com/Shade-Zepheri/Palette.git). Alternatively, you can add your GitHub account to Xcode and search for `Palette`.
 
 ### Manually
 
