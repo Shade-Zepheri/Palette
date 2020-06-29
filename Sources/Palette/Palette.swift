@@ -161,6 +161,7 @@ extension UIImage {
         let height = cgImage.height
         
         var pixels = [Pixel]()
+        pixels.reserveCapacity(width * height)
         for x in 0..<width {
             for y in 0..<height {
                 // Construct pixel
