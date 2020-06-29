@@ -251,16 +251,33 @@ fileprivate class KMeans {
         self.dataPoints = dataPoints
     }
     
-    private func getRandomSamples(_ samples: [Pixel], k: Int) -> [Pixel] {
-        var result = [Pixel]()
+    func generateInitialCenters(_ samples: [Pixel], k: Int) -> [Pixel] {
+        // Get first center at random
+        let random = Int.random(in: 0..<samples.count)
+        var centers = [samples[random]]
         
-        // Fill array with a random entry in samples
-        for _ in 0..<k {
-            let random = Int.random(in: 0..<samples.count)
-            result.append(samples[random])
+        // Generate the remaining k-1 centers
+        for _ in 1..<k {
+            var centerCandidate = Pixel(r: 0, g: 0, b: 0, a: 0)
+            var furthestDistance = Double.leastNormalMagnitude
+            for pixel in samples {
+                var distance = Double.greatestFiniteMagnitude
+                for center in centers {
+                    distance = min(center.distanceTo(pixel), distance)
+                }
+                
+                if distance <= furthestDistance {
+                    continue
+                }
+                
+                furthestDistance = distance
+                centerCandidate = pixel
+            }
+            
+            centers.append(centerCandidate)
         }
-
-        return result
+        
+        return centers
     }
     
     private func indexOfNearestCentroid(_ pixel: Pixel, centroids: [Pixel]) -> Int {
@@ -283,7 +300,7 @@ fileprivate class KMeans {
     
     func kMeans(partitions: Int, tolerance: Double, entries: [Pixel]) -> [Pixel] {
         // The main engine behind the scenes
-        var centroids = getRandomSamples(entries, k: partitions)
+        var centroids = generateInitialCenters(entries, k: partitions)
         
         var centerMoveDist = 0.0
         repeat {
